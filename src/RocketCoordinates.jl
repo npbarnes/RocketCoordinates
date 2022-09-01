@@ -51,20 +51,36 @@ D̂_gc(x::ECEF) = D̂_gc(geocentric_latitude(x), geocentric_longitude(x))
 N̂_gc(λ, Ω) = SA[-sin(λ)*cos(Ω), -sin(λ)*sin(Ω), cos(λ)]
 Ê_gc(λ, Ω) = SA[-sin(Ω), cos(Ω), 0]
 D̂_gc(λ, Ω) = SA[-cos(λ)*cos(Ω), -cos(λ)*sin(Ω), -sin(λ)]
+
+"""
+    NED_matrix(x::ECEF)
+
+A matrix that rotates geocentric North, East, Down coordinates to coordinates parallel to
+ECEF axes. Does not do any translation or boosting. See [`XYZ_matrix`](@ref) for a more
+detailed discussion of translation, rotation, and boosting with examples.
+
+See also [`MZP_matrix`](@ref)
+"""
 function NED_matrix(x::ECEF)
     λ = geocentric_latitude(x)
     Ω = geocentric_longitude(x)
     [N̂_gc(λ, Ω) Ê_gc(λ, Ω) D̂_gc(λ, Ω)]
 end
 
-
-"""IGRF B field in the NED coordinates described above"""
+"""IGRF B field in the geocentric NED coordinates described above"""
 IGRF_NED(x::ECEF, year=2021) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
 
 """
+    MZP_matrix(x::ECEF)
+
 One possible definition of Meridional, Zonal, Parallel coordinates (not confirmed by Rob).
-Multiply a tangent vector by MZP to convert from MZP to ECEF
-Multiply a tangent vector by transpose(MZP) to convert from ECEF to MZP
+This matrix rotates MZP vectors to coordinates parallel to ECEF. It does not do any
+translation or boosting. See [`XYZ_matrix`](@ref) for a more detailed disscussion of
+translation, rotation, and boosting with examples.
+
+The parallel direction is determined by IGRF at the point x in 2021.
+
+See also [`NED_matrix`](@ref)
 """
 function MZP_matrix(x::ECEF)
     NEDtoECEF = NED_matrix(x)
@@ -76,14 +92,35 @@ function MZP_matrix(x::ECEF)
 end
 
 """
-Hybrid Code XYZ coordinates
-Multiply a tangent vector by XYZ to convert from XYZ to ECEF
-Multiply a tangent vector by transpose(XYZ) to convert from ECEF to XYZ
+    XYZ_matrix(x::ECEF, v::ECEF)
 
-vec_ECEF = XYZ * vec_XYZ
-vec_XYZ = transpose(XYZ) * vec_ECEF
-vec_XYZ = transpose(XYZ) * MZP * vec_MZP
-vec_MZP = transpose(MZP) * XYZ * vec_XYZ
+A matrix that rotates Hybrid Code XYZ coordinates be parallel to ECEF. `x` is the origin
+of the XYZ coordinate system in ECEF (i.e. the barium release point) and `v` is the velocity
+of the payload in ECEF. Note that XYZ is translated, rotated, and boosted relative to ECEF.
+(We'll ignore acceleration from gravity, and roatation of B over the timescale of the
+experiment.) This matrix only does the rotation; not the translation or the boost. Also, B
+is IGRF at the point x which probably cooresponds with the barium canister instead of the
+main payload, but the difference should be small.
+
+Given a position x′ in XYZ coordinates we can get its ECEF coordinates by first rotating
+the axes by multiplying by XYZ and then adding `x` the ECEF coordinate of the
+origin of the XYZ system.
+`x′_ECEF = x_ECEF + XYZ * x′_XYZ`
+
+Given a velocity v′ in XYZ derived coordinates we can get its ECEF derived coordinates by
+rotating and boosting.
+`v′_ECEF = v_ECEF + XYZ * v′_XYZ`
+
+Given a magnetic field vector we can convert from XYZ derived coordinates to ECEF derived
+coordinates by `B_ECEF = XYZ * B_XYZ`. This is a special case because a non-relativistic
+boost of B doesn't change it's value, and its a tangent vector so we're actually rotating
+derived coordinates so we don't have to worry about translation.
+
+Given an electric field vector we can convert from XYZ derived coordinates to ECEF derived
+coordinates by `E_ECEF = v_ECEF×B_ECEF + XYZ * E_XYZ` since the non-relativistic boost
+formula for E is `E′ = E + v×B`
+
+See also [`NED_matrix`](@ref), and [`MZP_matrix`](@ref)
 """
 function XYZ_matrix(x::ECEF, v::ECEF)
     MZP = MZP_matrix(x)
