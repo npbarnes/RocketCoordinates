@@ -1,9 +1,8 @@
 module RocketCoordinates
 
-export loaddata, geocentric_latitude, geocentric_longitude
-export N̂_gc, Ê_gc, D̂_gc, NED_matrix, IGRF_NED
-export MZP_matrix
-export ColumnMatrix
+export loaddata
+export NED_matrix, IGRF_NED
+export MZP_matrix, XYZ_matrix
 
 using Geodesy
 using SatelliteToolbox
