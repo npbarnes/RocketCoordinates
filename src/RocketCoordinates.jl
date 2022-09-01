@@ -11,7 +11,7 @@ using DataFrames
 using StaticArrays
 using LinearAlgebra
 
-const datafilename = "data/delamereBodyPositions.txt"
+const datafilename = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
 
 geocentric_latitude(x::ECEF) = geocentric_latitude(x.x, x.y, x.z)
 geocentric_latitude(x,y,z) = atan(z, √(x^2 + y^2))
