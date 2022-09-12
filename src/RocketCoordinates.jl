@@ -68,7 +68,7 @@ function NED_matrix(x::ECEF)
 end
 
 """IGRF B field in the geocentric NED coordinates described above"""
-IGRF_NED(x::ECEF, year=2021.41) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
+IGRF_NED(x::ECEF, year=2021.37) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
 
 """
     MZP_matrix(x::ECEF)
