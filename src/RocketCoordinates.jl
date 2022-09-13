@@ -11,27 +11,12 @@ using DataFrames
 using StaticArrays
 using LinearAlgebra
 
-const datafilename = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
+const bodypositions_file = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
 
 geocentric_latitude(x::ECEF) = geocentric_latitude(x.x, x.y, x.z)
 geocentric_latitude(x,y,z) = atan(z, √(x^2 + y^2))
 geocentric_longitude(x::ECEF) = geocentric_longitude(x.x, x.y, x.z)
 geocentric_longitude(x,y,z) = atan(y,x)
-
-loaddata() = CSV.read(datafilename, DataFrame;
-    header = [
-        :time,
-        :main_x, :main_y, :main_z,
-        :ba1_x, :ba1_y, :ba1_z,
-        :ba2_x, :ba2_y, :ba2_z,
-        :d1_x, :d1_y, :d1_z,
-        :d2_x, :d2_y, :d2_z,
-        :d3_x, :d3_y, :d3_z,
-        :d4_x, :d4_y, :d4_z,
-    ],
-    delim = " ",
-    ignorerepeated = true
-)
 
 # Consider the (cartographic) spherical coordinate system:
 # r = √(x^2 + y^2 + z^2)
