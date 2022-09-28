@@ -1,6 +1,5 @@
 module RocketCoordinates
 
-export loaddata
 export NED_matrix, IGRF_NED
 export MZP_matrix, XYZ_matrix
 
@@ -10,6 +9,8 @@ using CSV
 using DataFrames
 using StaticArrays
 using LinearAlgebra
+
+using DataLoaders
 
 const bodypositions_file = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
 
