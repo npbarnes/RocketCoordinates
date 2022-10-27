@@ -96,7 +96,7 @@ end
 A matrix that rotates Hybrid Code XYZ coordinates be parallel to ECEF. `x` is the origin
 of the XYZ coordinate system in ECEF (i.e. the barium release point) and `v` is the velocity
 of the payload in ECEF. Note that XYZ is translated, rotated, and boosted relative to ECEF.
-(We'll ignore acceleration from gravity, and roatation of B over the timescale of the
+(We'll ignore acceleration from gravity, and rotation of B over the timescale of the
 experiment.) This matrix only does the rotation; not the translation or the boost. Also, B
 is IGRF at the point x which probably cooresponds with the barium canister instead of the
 main payload, but the difference should be small.
