@@ -1,7 +1,7 @@
 module RocketCoordinates
 
 export NED_matrix, IGRF_NED
-export MZP_matrix, XYZ_matrix
+export MZP_matrix, XYZ_matrix, ROB_matrix
 
 using Geodesy
 using SatelliteToolbox
@@ -77,6 +77,18 @@ function MZP_matrix(x::ECEF)
     [M Z P]
 end
 
+"""
+    ROB_matrix(x::ECEF)
+
+Meridional, Zonal, Parallel coordinates as defined by Rob
+"""
+function ROB_matrix(x::ECEF)
+    NEDtoECEF = NED_matrix(x)
+    B = normalize(NEDtoECEF * IGRF_NED(x))
+    Z = normalize(B × x)
+    M = normalize(Z × B)
+    [M Z B]
+end
 """
     XYZ_matrix(x::ECEF, v::ECEF)
 
