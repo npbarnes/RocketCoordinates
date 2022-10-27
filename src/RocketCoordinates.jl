@@ -13,6 +13,7 @@ using LinearAlgebra
 using DataLoaders
 
 const bodypositions_file = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
+const x = ECEF(2.2491957723032855e6, -4.980439036469659e6, 3.915796826007238e6)
 
 geocentric_latitude(x::ECEF) = geocentric_latitude(x.x, x.y, x.z)
 geocentric_latitude(x,y,z) = atan(z, √(x^2 + y^2))
