@@ -2,22 +2,46 @@ module RocketCoordinates
 
 export NED_matrix, IGRF_NED
 export MZP_matrix, XYZ_matrix, ROB_matrix
+export bodypositions_file
+export load_bodypositions
+export df
+export times, main, ba1, ba2, d1, d2, d3, d4
+export R1_time, R2_time
 
-using Geodesy
 using SatelliteToolbox
 using CSV
 using DataFrames
 using StaticArrays
 using LinearAlgebra
+using Unitful
 
 using DataLoaders
 
+#const x = ECEF(2.2491957723032855e6, -4.980439036469659e6, 3.915796826007238e6)
 const bodypositions_file = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
-const x = ECEF(2.2491957723032855e6, -4.980439036469659e6, 3.915796826007238e6)
+const df = load_bodypositions(bodypositions_file)
+const times = df.time * u"s"
+const main = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.main_x, df.main_y, df.main_z)]
+const ba1 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba1_x, df.ba1_y, df.ba1_z)]
+const ba2 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba2_x, df.ba2_y, df.ba2_z)]
+const d1 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d1_x, df.d1_y, df.d1_z)]
+const d2 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d2_x, df.d2_y, df.d2_z)]
+const d3 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d3_x, df.d3_y, df.d3_z)]
+const d4 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d4_x, df.d4_y, df.d4_z)]
+#=
+const mag_file = "$(pkgdir(RocketCoordinates))/data/KinetX_Release_Mag_Data.txt"
+const mag = load_magdata(mag_file)
+const density_file = "$(pkgdir(RocketCoordinates))/data/KDR_N.txt"
+const density = load_density(density_file)
+=#
 
-geocentric_latitude(x::ECEF) = geocentric_latitude(x.x, x.y, x.z)
+# Brian Tibbetts' Release Analysis "Times in trajectory file" times of each barium release
+const R1_time = 593.23u"s"
+const R2_time = 627.47u"s"
+
+geocentric_latitude(x) = geocentric_latitude(x[1], x[2], x[3])
 geocentric_latitude(x,y,z) = atan(z, √(x^2 + y^2))
-geocentric_longitude(x::ECEF) = geocentric_longitude(x.x, x.y, x.z)
+geocentric_longitude(x) = geocentric_longitude(x[1], x[2], x[3])
 geocentric_longitude(x,y,z) = atan(y,x)
 
 # Consider the (cartographic) spherical coordinate system:
@@ -32,9 +56,9 @@ geocentric_longitude(x,y,z) = atan(y,x)
 # in coordinates dirived from ECEF coordinate axes.
 # The matrix [N̂ Ê D̂] converts a tangent vector from NED to ECEF coordinates, and
 # the matrix transpose([N̂ Ê D̂]) converts a tangent vector from ECEF to NED
-N̂_gc(x::ECEF) = N̂_gc(geocentric_latitude(x), geocentric_longitude(x))
-Ê_gc(x::ECEF) = Ê_gc(geocentric_latitude(x), geocentric_longitude(x))
-D̂_gc(x::ECEF) = D̂_gc(geocentric_latitude(x), geocentric_longitude(x))
+N̂_gc(x) = N̂_gc(geocentric_latitude(x), geocentric_longitude(x))
+Ê_gc(x) = Ê_gc(geocentric_latitude(x), geocentric_longitude(x))
+D̂_gc(x) = D̂_gc(geocentric_latitude(x), geocentric_longitude(x))
 N̂_gc(λ, Ω) = SA[-sin(λ)*cos(Ω), -sin(λ)*sin(Ω), cos(λ)]
 Ê_gc(λ, Ω) = SA[-sin(Ω), cos(Ω), 0]
 D̂_gc(λ, Ω) = SA[-cos(λ)*cos(Ω), -cos(λ)*sin(Ω), -sin(λ)]
@@ -48,14 +72,15 @@ detailed discussion of translation, rotation, and boosting with examples.
 
 See also [`MZP_matrix`](@ref)
 """
-function NED_matrix(x::ECEF)
+function NED_matrix(x)
     λ = geocentric_latitude(x)
     Ω = geocentric_longitude(x)
     [N̂_gc(λ, Ω) Ê_gc(λ, Ω) D̂_gc(λ, Ω)]
 end
 
 """IGRF B field in the geocentric NED coordinates described above"""
-IGRF_NED(x::ECEF, year=2021.37) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
+IGRF_NED(x::AbstractArray{<:Unitful.Length}) = IGRF_NED(ustrip.(u"m", x))
+IGRF_NED(x, year=2021.37) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
 
 """
     MZP_matrix(x::ECEF)
@@ -69,7 +94,7 @@ The parallel direction is determined by IGRF at the point x in 2021.
 
 See also [`NED_matrix`](@ref)
 """
-function MZP_matrix(x::ECEF)
+function MZP_matrix(x)
     NEDtoECEF = NED_matrix(x)
     P = normalize(NEDtoECEF * IGRF_NED(x))
     E = NEDtoECEF[:, 2] # East at x in ECEF
@@ -83,7 +108,7 @@ end
 
 Meridional, Zonal, Parallel coordinates as defined by Rob
 """
-function ROB_matrix(x::ECEF)
+function ROB_matrix(x)
     NEDtoECEF = NED_matrix(x)
     B = normalize(NEDtoECEF * IGRF_NED(x))
     Z = normalize(B × x)
@@ -121,7 +146,7 @@ formula for E is `E′ = E + v×B`
 
 See also [`NED_matrix`](@ref), and [`MZP_matrix`](@ref)
 """
-function XYZ_matrix(x::ECEF, v::ECEF)
+function XYZ_matrix(x, v)
     MZP = MZP_matrix(x)
     v_MZP = transpose(MZP) * v
     X = normalize(MZP * SA[v_MZP[1], v_MZP[2], 0]) # X is parallel to the projection of v into the perpendicular plane
