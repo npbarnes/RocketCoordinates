@@ -18,8 +18,7 @@ using Unitful
 using DataLoaders
 
 #const x = ECEF(2.2491957723032855e6, -4.980439036469659e6, 3.915796826007238e6)
-const bodypositions_file = "$(pkgdir(RocketCoordinates))/data/delamereBodyPositions.txt"
-const df = load_bodypositions(bodypositions_file)
+const df = load_bodypositions()
 const times = df.time * u"s"
 const main = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.main_x, df.main_y, df.main_z)]
 const ba1 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba1_x, df.ba1_y, df.ba1_z)]
