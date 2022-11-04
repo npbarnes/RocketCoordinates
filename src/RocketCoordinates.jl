@@ -14,19 +14,20 @@ using DataFrames
 using StaticArrays
 using LinearAlgebra
 using Unitful
+using BasicInterpolators
 
 using DataLoaders
 
 #const x = ECEF(2.2491957723032855e6, -4.980439036469659e6, 3.915796826007238e6)
 const df = load_bodypositions()
 const times = df.time * u"s"
-const main = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.main_x, df.main_y, df.main_z)]
-const ba1 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba1_x, df.ba1_y, df.ba1_z)]
-const ba2 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba2_x, df.ba2_y, df.ba2_z)]
-const d1 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d1_x, df.d1_y, df.d1_z)]
-const d2 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d2_x, df.d2_y, df.d2_z)]
-const d3 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d3_x, df.d3_y, df.d3_z)]
-const d4 = [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d4_x, df.d4_y, df.d4_z)]
+const main = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.main_x, df.main_y, df.main_z)])
+const ba1 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba1_x, df.ba1_y, df.ba1_z)])
+const ba2 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.ba2_x, df.ba2_y, df.ba2_z)])
+const d1 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d1_x, df.d1_y, df.d1_z)])
+const d2 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d2_x, df.d2_y, df.d2_z)])
+const d3 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d3_x, df.d3_y, df.d3_z)])
+const d4 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d4_x, df.d4_y, df.d4_z)])
 #=
 const mag_file = "$(pkgdir(RocketCoordinates))/data/KinetX_Release_Mag_Data.txt"
 const mag = load_magdata(mag_file)
@@ -148,7 +149,7 @@ See also [`NED_matrix`](@ref), and [`MZP_matrix`](@ref)
 function XYZ_matrix(x, v)
     MZP = MZP_matrix(x)
     v_MZP = transpose(MZP) * v
-    X = normalize(MZP * SA[v_MZP[1], v_MZP[2], 0]) # X is parallel to the projection of v into the perpendicular plane
+    X = normalize(MZP * SA[v_MZP[1], v_MZP[2], zero(v_MZP[3])]) # X is parallel to the projection of v into the perpendicular plane
     Z = MZP[:, 3] # Z is Parallel
     Y = Z × X # Y completes the right handed coordinate system
     [X Y Z]
