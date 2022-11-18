@@ -9,7 +9,6 @@ export times, main, ba1, ba2, d1, d2, d3, d4
 export R1_time, R2_time
 
 using SatelliteToolbox
-using CSV
 using DataFrames
 using StaticArrays
 using LinearAlgebra
@@ -35,12 +34,6 @@ const d4 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d4_x,
 Estimate the derivative of x at t using a centered finite difference.
 """
 FD_velocity(x,t,dt) = (x(t+dt) - x(t-dt))/2dt
-#=
-const mag_file = "$(pkgdir(RocketCoordinates))/data/KinetX_Release_Mag_Data.txt"
-const mag = load_magdata(mag_file)
-const density_file = "$(pkgdir(RocketCoordinates))/data/KDR_N.txt"
-const density = load_density(density_file)
-=#
 
 # Brian Tibbetts' Release Analysis "Times in trajectory file" times of each barium release
 const R1_time = 593.23u"s"
