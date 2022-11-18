@@ -1,7 +1,7 @@
 module RocketCoordinates
 
 export NED_matrix, IGRF_NED
-export MZP_matrix, XYZ_matrix, ROB_matrix
+export MZP_matrix, XYZ_matrix
 export bodypositions_file
 export load_bodypositions
 export df
@@ -142,7 +142,7 @@ function XYZ_matrix(x, v)
 end
 
 function rotate_xyz2mzp(vec, x=ba2, t=R2_time, dt=0.1u"s")
-    mzp = ROB_matrix(x(t))
+    mzp = MZP_matrix(x(t))
     xyz = XYZ_matrix(x(t), FD_velocity(x, t, dt))
 
     mzp' * xyz * vec
