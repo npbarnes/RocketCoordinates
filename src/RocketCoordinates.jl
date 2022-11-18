@@ -85,30 +85,9 @@ IGRF_NED(x, year=2021.37) = igrf(year, norm(x), geocentric_latitude(x), geocentr
 """
     MZP_matrix(x::ECEF)
 
-One possible definition of Meridional, Zonal, Parallel coordinates (not confirmed by Rob).
-This matrix rotates MZP vectors to coordinates parallel to ECEF. It does not do any
-translation or boosting. See [`XYZ_matrix`](@ref) for a more detailed disscussion of
-translation, rotation, and boosting with examples.
-
-The parallel direction is determined by IGRF at the point x in 2021.
-
-See also [`NED_matrix`](@ref)
-"""
-function MZP_matrix(x)
-    NEDtoECEF = NED_matrix(x)
-    P = normalize(NEDtoECEF * IGRF_NED(x))
-    E = NEDtoECEF[:, 2] # East at x in ECEF
-    Z = normalize(E - P * (E ⋅ P)) # Zonal is East projected into the perp B plane and normalized in ECEF
-    M = Z × P # Meridional completes the right handed triple in ECEF
-    [M Z P]
-end
-
-"""
-    ROB_matrix(x::ECEF)
-
 Meridional, Zonal, Parallel coordinates as defined by Rob
 """
-function ROB_matrix(x)
+function MZP_matrix(x)
     NEDtoECEF = NED_matrix(x)
     B = normalize(NEDtoECEF * IGRF_NED(x))
     Z = normalize(B × x)
