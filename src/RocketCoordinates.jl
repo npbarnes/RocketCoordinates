@@ -46,9 +46,9 @@ const density = load_density(density_file)
 const R1_time = 593.23u"s"
 const R2_time = 627.47u"s"
 
-geocentric_latitude(x) = geocentric_latitude(x[1], x[2], x[3])
+geocentric_latitude(x_ecef) = geocentric_latitude(x_ecef[1], x_ecef[2], x_ecef[3])
 geocentric_latitude(x,y,z) = atan(z, √(x^2 + y^2))
-geocentric_longitude(x) = geocentric_longitude(x[1], x[2], x[3])
+geocentric_longitude(x_ecef) = geocentric_longitude(x_ecef[1], x_ecef[2], x_ecef[3])
 geocentric_longitude(x,y,z) = atan(y,x)
 
 # Consider the (cartographic) spherical coordinate system:
@@ -63,15 +63,15 @@ geocentric_longitude(x,y,z) = atan(y,x)
 # in coordinates dirived from ECEF coordinate axes.
 # The matrix [N̂ Ê D̂] converts a tangent vector from NED to ECEF coordinates, and
 # the matrix transpose([N̂ Ê D̂]) converts a tangent vector from ECEF to NED
-N̂_gc(x) = N̂_gc(geocentric_latitude(x), geocentric_longitude(x))
-Ê_gc(x) = Ê_gc(geocentric_latitude(x), geocentric_longitude(x))
-D̂_gc(x) = D̂_gc(geocentric_latitude(x), geocentric_longitude(x))
+N̂_gc(x_ecef) = N̂_gc(geocentric_latitude(x_ecef), geocentric_longitude(x_ecef))
+Ê_gc(x_ecef) = Ê_gc(geocentric_latitude(x_ecef), geocentric_longitude(x_ecef))
+D̂_gc(x_ecef) = D̂_gc(geocentric_latitude(x_ecef), geocentric_longitude(x_ecef))
 N̂_gc(λ, Ω) = SA[-sin(λ)*cos(Ω), -sin(λ)*sin(Ω), cos(λ)]
 Ê_gc(λ, Ω) = SA[-sin(Ω), cos(Ω), 0]
 D̂_gc(λ, Ω) = SA[-cos(λ)*cos(Ω), -cos(λ)*sin(Ω), -sin(λ)]
 
 """
-    NED_matrix(x::ECEF)
+    NED_matrix(x_ecef)
 
 A matrix that rotates geocentric North, East, Down coordinates to coordinates parallel to
 ECEF axes. Does not do any translation or boosting. See [`XYZ_matrix`](@ref) for a more
@@ -79,9 +79,9 @@ detailed discussion of translation, rotation, and boosting with examples.
 
 See also [`MZP_matrix`](@ref)
 """
-function NED_matrix(x)
-    λ = geocentric_latitude(x)
-    Ω = geocentric_longitude(x)
+function NED_matrix(x_ecef)
+    λ = geocentric_latitude(x_ecef)
+    Ω = geocentric_longitude(x_ecef)
     [N̂_gc(λ, Ω) Ê_gc(λ, Ω) D̂_gc(λ, Ω)]
 end
 
@@ -90,19 +90,20 @@ IGRF_NED(x::AbstractArray{<:Unitful.Length}) = IGRF_NED(ustrip.(u"m", x))
 IGRF_NED(x, year=2021.37) = igrf(year, norm(x), geocentric_latitude(x), geocentric_longitude(x), Val(:geocentric))
 
 """
-    MZP_matrix(x::ECEF)
+    MZP_matrix(x_ecef)
 
-Meridional, Zonal, Parallel coordinates as defined by Rob
+Rotates Meridional, Zonal, Parallel coordinates as defined by Rob to coordinates parallel to ECEF.
+`x` is the origin of the MZP system in ECEF
 """
-function MZP_matrix(x)
-    NEDtoECEF = NED_matrix(x)
-    B = normalize(NEDtoECEF * IGRF_NED(x))
-    Z = normalize(B × x)
+function MZP_matrix(x_ecef)
+    NEDtoECEF = NED_matrix(x_ecef)
+    B = normalize(NEDtoECEF * IGRF_NED(x_ecef))
+    Z = normalize(B × x_ecef)
     M = normalize(Z × B)
     [M Z B]
 end
 """
-    XYZ_matrix(x::ECEF, v::ECEF)
+    XYZ_matrix(x_ecef, v_ecef)
 
 A matrix that rotates Hybrid Code XYZ coordinates be parallel to ECEF. `x` is the origin
 of the XYZ coordinate system in ECEF (i.e. the barium release point) and `v` is the velocity
