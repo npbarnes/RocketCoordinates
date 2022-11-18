@@ -28,6 +28,13 @@ const d1 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d1_x,
 const d2 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d2_x, df.d2_y, df.d2_z)])
 const d3 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d3_x, df.d3_y, df.d3_z)])
 const d4 = LinearInterpolator(times, [SA[x,y,z]*u"m" for (x,y,z) in zip(df.d4_x, df.d4_y, df.d4_z)])
+
+"""
+    FD_velocity(x,t,dt)
+
+Estimate the derivative of x at t using a centered finite difference.
+"""
+FD_velocity(x,t,dt) = (x(t+dt) - x(t-dt))/2dt
 #=
 const mag_file = "$(pkgdir(RocketCoordinates))/data/KinetX_Release_Mag_Data.txt"
 const mag = load_magdata(mag_file)
@@ -132,6 +139,13 @@ function XYZ_matrix(x, v)
     Z = MZP[:, 3] # Z is Parallel
     Y = Z × X # Y completes the right handed coordinate system
     [X Y Z]
+end
+
+function rotate_xyz2mzp(vec, x=ba2, t=R2_time, dt=0.1u"s")
+    mzp = ROB_matrix(x(t))
+    xyz = XYZ_matrix(x(t), FD_velocity(x, t, dt))
+
+    mzp' * xyz * vec
 end
 
 end # module
