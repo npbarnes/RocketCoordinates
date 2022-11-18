@@ -149,4 +149,11 @@ function rotate_xyz2mzp(vec, x=ba2, t=R2_time, dt=0.1u"s")
     mzp' * xyz * vec
 end
 
+function rotate_mzp2xyz(vec, x=ba2, t=R2_time, dt=0.1u"s")
+    mzp = MZP_matrix(x(t))
+    xyz = XYZ_matrix(x(t), FD_velocity(x, t, dt))
+
+    xyz' * mzp * vec
+end
+
 end # module
