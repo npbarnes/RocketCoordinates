@@ -2,11 +2,9 @@ module RocketCoordinates
 
 export NED_matrix, IGRF_NED
 export MZP_matrix, XYZ_matrix
-export bodypositions_file
-export load_bodypositions
-export df
-export times, main, ba1, ba2, d1, d2, d3, d4
+export main, ba1, ba2, d1, d2, d3, d4
 export R1_time, R2_time
+export rotate_mzp2xyz, rotate_xyz2mzp
 
 using SatelliteToolbox
 using DataFrames
