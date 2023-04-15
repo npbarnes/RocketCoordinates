@@ -4,7 +4,7 @@ export NED_matrix, IGRF_NED
 export MZP_matrix, XYZ_matrix
 export main, ba1, ba2, d1, d2, d3, d4
 export R1_time, R2_time
-export rotate_mzp2xyz, rotate_xyz2mzp
+export rotate_mzp2xyz, rotate_xyz2mzp, FD_velocity
 
 using SatelliteToolbox
 using DataFrames
