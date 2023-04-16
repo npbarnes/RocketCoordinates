@@ -108,11 +108,11 @@ version = "1.5.0"
 
 [[deps.DataLoaders]]
 deps = ["CSV", "DataFrames", "DelimitedFiles", "PyCall", "PyPlot", "Unitful"]
-git-tree-sha1 = "5c9d3c791d7a61d44e4b898a79066734dd7effc4"
+git-tree-sha1 = "2b6787bf13f94cfc03fe6b0c049c3cea5a944465"
 repo-rev = "main"
 repo-url = "https://github.com/npbarnes/DataLoaders"
 uuid = "c95f3ad7-55be-4bf4-a3a9-d739e10a8a85"
-version = "0.2.0"
+version = "0.3.0"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]

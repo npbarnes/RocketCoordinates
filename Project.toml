@@ -1,7 +1,7 @@
 name = "RocketCoordinates"
 uuid = "1fbd8cc2-d0ea-4f29-80ef-7fff59b343cc"
 authors = ["Nathan Barnes <npbarnes@alaska.edu>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 BasicInterpolators = "26cce99e-4866-4b6d-ab74-862489e035e0"
