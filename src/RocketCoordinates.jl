@@ -5,6 +5,7 @@ export MZP_matrix, XYZ_matrix
 export main, ba1, ba2, d1, d2, d3, d4
 export R1_time, R2_time
 export rotate_mzp2xyz, rotate_xyz2mzp, FD_velocity
+export relative_positions
 
 using SatelliteToolbox
 using DataFrames
@@ -131,6 +132,21 @@ function XYZ_matrix(x, v)
     Z = MZP[:, 3] # Z is Parallel
     Y = Z × X # Y completes the right handed coordinate system
     [X Y Z]
+end
+
+function relative_positions(t, dt=0.1u"s"; origin=main)
+    XYZ = XYZ_matrix(main(t), FD_velocity(main, t, dt))
+    x0 = origin(t)
+
+    Dict(
+        "main" => XYZ' * (main(t)-x0),
+        "ba1" => XYZ' * (ba1(t)-x0),
+        "ba2" => XYZ' * (ba2(t)-x0),
+        "d1" => XYZ' * (d1(t)-x0),
+        "d2" => XYZ' * (d2(t)-x0),
+        "d3" => XYZ' * (d3(t)-x0),
+        "d4" => XYZ' * (d4(t)-x0)
+    )
 end
 
 function rotate_xyz2mzp(vec, x=ba2, t=R2_time, dt=0.1u"s")
